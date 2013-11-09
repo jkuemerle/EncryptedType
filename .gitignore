@@ -11,3 +11,4 @@ obj
 *.vspscc
 
 */_sgbak/*
+*.nupkg

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>IEncryptedType</id>
+    <version>0.0.1</version>
+    <title>IEncryptedType</title>
+    <authors>Joe Kuemerle</authors>
+    <owners>Joe Kuemerle</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
+    <projectUrl>http://github.com/jkuemerle/encrypted-type</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Library of interfaces used by the EncryptedType transparent field and property encryption.</description>
+    <releaseNotes>Initial release.</releaseNotes>
+    <copyright>Copyright 2013</copyright>
+    <tags>encryption security decryption AES</tags>
+  </metadata>
+  <files>
+	<file src="bin\Release\IEncryptedType.dll" target="lib\net40" />
+  </files>
+</package>

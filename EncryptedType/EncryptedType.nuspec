@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>EncryptedType</id>
+    <version>0.0.1</version>
+    <title>EncryptedType</title>
+    <authors>Joe Kuemerle</authors>
+    <owners>Joe Kuemerle</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
+    <projectUrl>http://github.com/jkuemerle/encrypted-type</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Library for implementing transparent encryption of fields and/or properties.</description>
+    <releaseNotes>Initial release.</releaseNotes>
+    <copyright>Copyright 2013</copyright>
+    <tags>encryption security decryption AES</tags>
+    <dependencies>
+      <dependency id="IEncryptedType" version="0.0" />
+      <dependency id="PostSharp" version="3.0" />
+    </dependencies>	
+  </metadata>
+  <files>
+	<file src="bin\Release\EncryptedType.dll" target="lib\net40" />
+	<file src="..\content\RequiresPostSharp.cs" target="content" />
+  </files>
+</package>

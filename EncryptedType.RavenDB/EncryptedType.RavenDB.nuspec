@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>EncryptedType.RavenDB</id>
+    <version>0.0.1</version>
+    <title>EncryptedType.RavenDB</title>
+    <authors>Joe Kuemerle</authors>
+    <owners>Joe Kuemerle</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
+    <projectUrl>http://github.com/jkuemerle/encrypted-type</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Library for implementing transparent encryption of fields and/or properties and persisting to RavenDB.</description>
+    <releaseNotes>Initial release.</releaseNotes>
+    <copyright>Copyright 2013</copyright>
+    <tags>encryption security decryption AES RavenDB</tags>
+    <dependencies>
+      <dependency id="IEncryptedType" version="0.0" />
+      <dependency id="EncryptedType" version="0.0" />
+      <dependency id="PostSharp" version="3.0" />
+    </dependencies>	
+  </metadata>
+  <files>
+	<file src="bin\Release\EncryptedType.RavenDB.dll" target="lib\net40" />
+	<file src="..\content\RequiresPostSharp.cs" target="content" />
+  </files>
+</package>
