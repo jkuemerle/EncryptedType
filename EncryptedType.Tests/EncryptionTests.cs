@@ -50,17 +50,12 @@ namespace EncryptedType.Tests
         [Test]
         public void TestDecryption()
         {
-            var foo = new EncTest();
             var n = new EncTest();
             var s = new CeloClavis.TestServer();
             ((IEncryptedType)n).KeyServer = s;
             ((IEncryptedType)n).EncryptionKeys = s.Map;
             ((IEncryptedType)n).Integrity = n.IntegrityValue;
-            ((IEncryptedType)foo).KeyServer = s;
-            ((IEncryptedType)foo).EncryptionKeys = s.Map;
-            ((IEncryptedType)foo).Integrity = foo.IntegrityValue;
             n.SSN = "111-11-1111";
-            foo.SSN = "222-22-2222";
             Assert.AreEqual("111-11-1111", ((IEncryptedType)n).AsClear(() => n.SSN));
         }
 

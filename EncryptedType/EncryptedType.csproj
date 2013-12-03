@@ -53,6 +53,7 @@
     <Compile Include="SeekableValueAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="EncryptedType.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

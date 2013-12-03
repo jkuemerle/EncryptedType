@@ -58,6 +58,7 @@
     <Compile Include="RequiresPostSharp.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="EncryptedType.RavenDB.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
