@@ -7,7 +7,7 @@
     <authors>Joe Kuemerle</authors>
     <owners>Joe Kuemerle</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
-    <projectUrl>http://github.com/jkuemerle/encrypted-type</projectUrl>
+    <projectUrl>http://github.com/jkuemerle/EncryptedType</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Library for implementing transparent encryption of fields and/or properties.</description>
     <releaseNotes>Initial release.</releaseNotes>
