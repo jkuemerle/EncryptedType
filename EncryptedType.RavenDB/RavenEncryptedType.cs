@@ -27,7 +27,7 @@ namespace EncryptedType.RavenDB
         [Raven.Imports.Newtonsoft.Json.JsonIgnore]
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
         [CopyCustomAttributes(typeof(Raven.Imports.Newtonsoft.Json.JsonIgnoreAttribute))]
-        public Func<string> Integrity {
+        public IDictionary<string,Func<string>> Integrity {
             get
             {
                 return base.Integrity;

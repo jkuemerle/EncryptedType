@@ -50,7 +50,7 @@ namespace EncryptedType
         public IKeyServer KeyServer { get; set; }
 
         [IntroduceMember(IsVirtual = true, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
-        public Func<string> Integrity { get; set; }
+        public IDictionary<string,Func<string>> Integrity { get; set; }
 
 
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
@@ -84,16 +84,19 @@ namespace EncryptedType
                 else
                     if (null != KeyServer)
                         key = KeyServer.GetKey(keyName);
-                return Decrypt(EncryptedValues[PropertyName], key);
+                Func<string> IntegrityFunction = null;
+                if (null != this.Integrity && this.Integrity.ContainsKey(PropertyName))
+                    IntegrityFunction = this.Integrity[PropertyName];
+                return Decrypt(EncryptedValues[PropertyName], key,IntegrityFunction);
             }
             return null;
         }
 
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
-        public string Encrypt(string Data, string KeyValue)
+        public string Encrypt(string Data, string KeyValue, Func<string> IntegrityFunction)
         {
-            if (null != this.Integrity)
-                Data = AddHMAC(Data, this.Integrity);
+            if (null != IntegrityFunction)
+                Data = AddHMAC(Data, IntegrityFunction);
             var val = System.Text.UnicodeEncoding.Unicode.GetBytes(Data);
             var crypter = new System.Security.Cryptography.RijndaelManaged();
             var iv = new byte[crypter.BlockSize / 8].FillWithEntropy();
@@ -145,7 +148,7 @@ namespace EncryptedType
         }
 
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
-        public string Decrypt(string Data, string KeyValue)
+        public string Decrypt(string Data, string KeyValue, Func<string> IntegrityFunction)
         {
             string retVal = null;
             var vals = Data.Split('\0');
@@ -173,12 +176,12 @@ namespace EncryptedType
                 }
                 retVal = Encoding.Unicode.GetString(decrypted, 0, decryptedByteCount);
             }
-            if (null != this.Integrity)
+            if (null != IntegrityFunction)
             {
                 var values = retVal.Split('\0');
                 if (values.Length < 2)
                     retVal = null;
-                if (null != retVal && VerifyHMAC(retVal, this.Integrity))
+                if (null != retVal && VerifyHMAC(retVal, IntegrityFunction))
                     retVal = values[0];
                 else
                     retVal = null;

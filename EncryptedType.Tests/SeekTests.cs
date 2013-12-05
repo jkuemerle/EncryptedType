@@ -40,7 +40,7 @@ namespace EncryptedType.Tests
             var s = new CeloClavis.TestServer();
             ((IEncryptedType)n).KeyServer = s;
             ((IEncryptedType)n).EncryptionKeys = s.Map;
-            ((IEncryptedType)n).Integrity = n.IntegrityValue;
+            //((IEncryptedType)n).Integrity = n.IntegrityValue;
             n.SSN = "111-11-1111";
             Assert.AreNotEqual("111-11-1111", n.SSN);
         }

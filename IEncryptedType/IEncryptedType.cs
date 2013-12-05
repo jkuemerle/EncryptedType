@@ -11,7 +11,7 @@ namespace EncryptedType
 
         IKeyServer KeyServer { get; set; }
 
-        Func<string> Integrity {get; set;}
+        IDictionary<string, Func<string>> Integrity { get; set; }
 
         object ClearText(string PropertyName);
 
@@ -40,13 +40,31 @@ namespace System
             return Item;
         }
 
-        public static T Integrity<T>(this T Item, Func<string> Function) where T : EncryptedType.IEncryptedType
+        public static T Integrity<T>(this T Item, string PropertyName, Func<string> Function) where T : EncryptedType.IEncryptedType
         {
-            ((EncryptedType.IEncryptedType)Item).Integrity = Function;
+            if(null != Item.Integrity)
+            {
+                if (Item.Integrity.ContainsKey(PropertyName))
+                    Item.Integrity[PropertyName] = Function;
+                else
+                    Item.Integrity.Add(PropertyName, Function);
+            }
             return Item;
         }
 
-        public static T KeyServer<T>(this T Item, EncryptedType.IKeyServer Server) where T:EncryptedType.IEncryptedType
+        public static T Integrity<T>(this T Item, Expression<Func<object>> Property, Func<string> Function) where T : EncryptedType.IEncryptedType
+        {
+            string PropertyName = Property.PropertyName();
+            if (null != Item.Integrity)
+            {
+                if (Item.Integrity.ContainsKey(PropertyName))
+                    Item.Integrity[PropertyName] = Function;
+                else
+                    Item.Integrity.Add(PropertyName, Function);
+            }
+            return Item;
+        }
+        public static T KeyServer<T>(this T Item, EncryptedType.IKeyServer Server) where T : EncryptedType.IEncryptedType
         {
             ((EncryptedType.IEncryptedType)Item).KeyServer = Server;
             return Item;

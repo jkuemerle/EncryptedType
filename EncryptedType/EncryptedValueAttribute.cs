@@ -37,13 +37,13 @@ namespace EncryptedType
         public Property<IKeyServer> KeyServer;
 
         [ImportMember("Integrity", IsRequired = false)]
-        public Property<Func<string>> IntegrityFunction;
+        public Property<IDictionary<string,Func<string>>> IntegrityFunction;
 
         [ImportMember("Encrypt", IsRequired = true, Order=ImportMemberOrder.AfterIntroductions)]
-        public Func<string,string,string> Encrypt;
+        public Func<string, string, Func<string>, string> Encrypt;
 
         [ImportMember("Decrypt", IsRequired = true, Order = ImportMemberOrder.AfterIntroductions)]
-        public Func<string,string, string> Decrypt;
+        public Func<string, string, Func<string>, string> Decrypt;
 
         public object CreateInstance(AdviceArgs adviceArgs) { return this.MemberwiseClone(); }
 
@@ -54,7 +54,10 @@ namespace EncryptedType
             if(EncryptionKeysStore.Get().ContainsKey(propname))
             {
                 string keyName = EncryptionKeysStore.Get()[propname];
-                var encrypted = Encrypt(args.Value.ToString(), KeyServer.Get().GetKey(keyName));
+                Func<string> integrity = null;
+                if (null != this.IntegrityFunction.Get() && this.IntegrityFunction.Get().ContainsKey(propname))
+                    integrity = this.IntegrityFunction.Get()[propname];
+                var encrypted = Encrypt(args.Value.ToString(), KeyServer.Get().GetKey(keyName),integrity);
                 if (null != EncryptedValuesStore.Get())
                     if (!EncryptedValuesStore.Get().ContainsKey(propname))
                         EncryptedValuesStore.Get().Add(propname, encrypted);

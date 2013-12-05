@@ -51,7 +51,7 @@ namespace CeloCorvus.Tests
             var n = new EncTest();
             ((IEncryptedType)n).KeyServer = ks;
             ((IEncryptedType)n).EncryptionKeys.Add("SSN", "Key1");
-            ((IEncryptedType)n).Integrity = n.IntegrityValue;
+            ((IEncryptedType)n).Integrity(() => n.SSN, n.IntegrityValue);
             //n.SSN = "111-11-1111";
             n.SSN = "222-22-2222";
             using (var ds = new Raven.Client.Document.DocumentStore() { Url = serverURL, DefaultDatabase = "Test" })
@@ -62,7 +62,7 @@ namespace CeloCorvus.Tests
                 session.SaveChanges();
                 var test = session.Load<EncTest>(n.ID);
                 ((IEncryptedType)test).KeyServer = ks;
-                ((IEncryptedType)test).Integrity = n.IntegrityValue;
+                ((IEncryptedType)test).Integrity(() => test.SSN, test.IntegrityValue);
                 Assert.AreEqual(n.ID, test.ID);
                 Assert.AreEqual(n.SSN, test.SSN);
                 string nSSN = ((IEncryptedType)n).AsClear(() => n.SSN).ToString();
@@ -88,7 +88,7 @@ namespace CeloCorvus.Tests
             foreach(var s in result)
             {
                 ((IEncryptedType)s).KeyServer = ks;
-                ((IEncryptedType)s).Integrity = s.IntegrityValue;
+                ((IEncryptedType)s).Integrity(() => s.SSN, s.IntegrityValue);
                 Assert.AreEqual("222-22-2222", ((IEncryptedType)s).AsClear(() => s.SSN).ToString()); 
             }
 
