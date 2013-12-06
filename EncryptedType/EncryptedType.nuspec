@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>EncryptedType</id>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <title>EncryptedType</title>
     <authors>Joe Kuemerle</authors>
     <owners>Joe Kuemerle</owners>
@@ -10,7 +10,7 @@
     <projectUrl>http://github.com/jkuemerle/EncryptedType</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Library for implementing transparent encryption of fields and/or properties.</description>
-    <releaseNotes>Performance improvements and per-property integrity functions.</releaseNotes>
+    <releaseNotes>Added Encrypt-then-MAC for improved encryption security.</releaseNotes>
     <copyright>Copyright 2013</copyright>
     <tags>encryption security decryption AES</tags>
     <dependencies>

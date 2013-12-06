@@ -124,7 +124,7 @@ namespace EncryptedType
                         }
                     }
                 }
-                return string.Format("{0}\0{1}", Convert.ToBase64String(iv), Convert.ToBase64String(encrypted));
+                return string.Format("{0}\0{1}\0{2}", Convert.ToBase64String(iv), Convert.ToBase64String(encrypted), ComputeHMAC(encrypted,key.SecretBytes));
             }
         }
 
@@ -149,10 +149,17 @@ namespace EncryptedType
                 return false;
             }
         }
+
         private static string ComputeHMAC(string Data, Func<string> Integrity)
         {
-            var hmac = new HMACSHA512() { Key = Encoding.Unicode.GetBytes(Integrity.Invoke()) };
+            var hmac = new HMACSHA256() { Key = Encoding.Unicode.GetBytes(Integrity.Invoke()) };
             return Convert.ToBase64String(hmac.ComputeHash(Encoding.Unicode.GetBytes(Data)));
+        }
+
+        private static string ComputeHMAC(byte[] Data, byte[] Key)
+        {
+            var hmac = new HMACSHA256() { Key = Key };
+            return Convert.ToBase64String(hmac.ComputeHash(Data));
         }
 
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
@@ -160,30 +167,34 @@ namespace EncryptedType
         {
             string retVal = null;
             var vals = Data.Split('\0');
-            if (vals.Length > 1)
+            if (vals.Length > 2)
             {
-                var iv = Convert.FromBase64String(vals[0]);
                 using (var crypter = new System.Security.Cryptography.RijndaelManaged())
                 {
+                    var iv = Convert.FromBase64String(vals[0]);
                     KeyInfo key = GetKeyInfo(KeyName, iv, crypter);
                     var encrypted = Convert.FromBase64String(vals[1]);
-                    byte[] decrypted;
-                    int decryptedByteCount = 0;
-                    crypter.IV = iv;
-                    crypter.Key = key.KeyBytes;
-                    crypter.Mode = CipherMode.CBC;
-                    using (var cipher = crypter.CreateDecryptor())
+                    var mac = vals[2];
+                    if (mac == ComputeHMAC(encrypted, key.SecretBytes))
                     {
-                        using (var from = new MemoryStream(encrypted))
+                        byte[] decrypted;
+                        int decryptedByteCount = 0;
+                        crypter.IV = iv;
+                        crypter.Key = key.KeyBytes;
+                        crypter.Mode = CipherMode.CBC;
+                        using (var cipher = crypter.CreateDecryptor())
                         {
-                            using (var reader = new CryptoStream(from, cipher, CryptoStreamMode.Read))
+                            using (var from = new MemoryStream(encrypted))
                             {
-                                decrypted = new byte[encrypted.Length];
-                                decryptedByteCount = reader.Read(decrypted, 0, decrypted.Length);
+                                using (var reader = new CryptoStream(from, cipher, CryptoStreamMode.Read))
+                                {
+                                    decrypted = new byte[encrypted.Length];
+                                    decryptedByteCount = reader.Read(decrypted, 0, decrypted.Length);
+                                }
                             }
                         }
+                        retVal = Encoding.Unicode.GetString(decrypted, 0, decryptedByteCount);
                     }
-                    retVal = Encoding.Unicode.GetString(decrypted, 0, decryptedByteCount);
                 }
             }
             if (null != IntegrityFunction)
