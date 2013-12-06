@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>EncryptedType.RavenDB</id>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <title>EncryptedType.RavenDB</title>
     <authors>Joe Kuemerle</authors>
     <owners>Joe Kuemerle</owners>
@@ -10,7 +10,7 @@
     <projectUrl>http://github.com/jkuemerle/EncryptedType</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Library for implementing transparent encryption of fields and/or properties and persisting to RavenDB.</description>
-    <releaseNotes>Initial release.</releaseNotes>
+    <releaseNotes>Performance improvements and per-property integrity functions.</releaseNotes>
     <copyright>Copyright 2013</copyright>
     <tags>encryption security decryption AES RavenDB</tags>
     <dependencies>
