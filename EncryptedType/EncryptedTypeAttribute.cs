@@ -22,6 +22,8 @@ namespace EncryptedType
     {
         protected static IKeyServer _sharedKeyServer;
         protected static IDictionary<string, string> _sharedKeys;
+        protected static IDictionary<string,KeyInfo> _sharedKeyCache;
+        protected static string _sharedKeyCacheLock = string.Empty;
 
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
         public IKeyServer SharedKeyServer
@@ -39,6 +41,16 @@ namespace EncryptedType
             }
         }
 
+
+        [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
+        public IDictionary<string, KeyInfo> KeyCache {
+            get { return _sharedKeyCache; }
+            set {
+                lock(_sharedKeyCacheLock) {
+                    _sharedKeyCache = value;
+                }
+            }
+        }
 
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
         public IDictionary<string, string> EncryptedValues { set; get; }
@@ -78,46 +90,42 @@ namespace EncryptedType
             if (EncryptionKeys.ContainsKey(PropertyName) && EncryptedValues.ContainsKey(PropertyName))
             {
                 string keyName = EncryptionKeys[PropertyName];
-                string key = null;
-                if (null != _sharedKeyServer)
-                    key = _sharedKeyServer.GetKey(keyName);
-                else
-                    if (null != KeyServer)
-                        key = KeyServer.GetKey(keyName);
                 Func<string> IntegrityFunction = null;
                 if (null != this.Integrity && this.Integrity.ContainsKey(PropertyName))
                     IntegrityFunction = this.Integrity[PropertyName];
-                return Decrypt(EncryptedValues[PropertyName], key,IntegrityFunction);
+                return Decrypt(EncryptedValues[PropertyName], keyName,IntegrityFunction);
             }
             return null;
         }
 
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
-        public string Encrypt(string Data, string KeyValue, Func<string> IntegrityFunction)
+        public string Encrypt(string Data, string KeyName, Func<string> IntegrityFunction)
         {
             if (null != IntegrityFunction)
                 Data = AddHMAC(Data, IntegrityFunction);
             var val = System.Text.UnicodeEncoding.Unicode.GetBytes(Data);
-            var crypter = new System.Security.Cryptography.RijndaelManaged();
-            var iv = new byte[crypter.BlockSize / 8].FillWithEntropy();
-            byte[] key = new Rfc2898DeriveBytes(KeyValue, iv).GetBytes(new System.Security.Cryptography.AesManaged().KeySize / 8);
-            byte[] encrypted;
-            crypter.IV = iv;
-            crypter.Key = key;
-            crypter.Mode = CipherMode.CBC;
-            using (var encrypter = crypter.CreateEncryptor())
+            using (var crypter = new System.Security.Cryptography.RijndaelManaged())
             {
-                using (var to = new MemoryStream())
+                var iv = new byte[crypter.BlockSize / 8].FillWithEntropy();
+                KeyInfo key = GetKeyInfo(KeyName, iv, crypter);
+                byte[] encrypted;
+                crypter.IV = iv;
+                crypter.Key = key.KeyBytes;
+                crypter.Mode = CipherMode.CBC;
+                using (var encrypter = crypter.CreateEncryptor())
                 {
-                    using (var writer = new CryptoStream(to, encrypter, CryptoStreamMode.Write))
+                    using (var to = new MemoryStream())
                     {
-                        writer.Write(val, 0, val.Length);
-                        writer.FlushFinalBlock();
-                        encrypted = to.ToArray();
+                        using (var writer = new CryptoStream(to, encrypter, CryptoStreamMode.Write))
+                        {
+                            writer.Write(val, 0, val.Length);
+                            writer.FlushFinalBlock();
+                            encrypted = to.ToArray();
+                        }
                     }
                 }
+                return string.Format("{0}\0{1}", Convert.ToBase64String(iv), Convert.ToBase64String(encrypted));
             }
-            return string.Format("{0}\0{1}", Convert.ToBase64String(iv), Convert.ToBase64String(encrypted));
         }
 
         private string AddHMAC(string Data, Func<string> Integrity)
@@ -148,33 +156,35 @@ namespace EncryptedType
         }
 
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
-        public string Decrypt(string Data, string KeyValue, Func<string> IntegrityFunction)
+        public string Decrypt(string Data, string KeyName, Func<string> IntegrityFunction)
         {
             string retVal = null;
             var vals = Data.Split('\0');
             if (vals.Length > 1)
             {
                 var iv = Convert.FromBase64String(vals[0]);
-                var crypter = new System.Security.Cryptography.RijndaelManaged();
-                byte[] key = new Rfc2898DeriveBytes(KeyValue, iv).GetBytes(crypter.KeySize / 8);
-                var encrypted = Convert.FromBase64String(vals[1]);
-                byte[] decrypted;
-                int decryptedByteCount = 0;
-                crypter.IV = iv;
-                crypter.Key = key;
-                crypter.Mode = CipherMode.CBC;
-                using (var cipher = crypter.CreateDecryptor())
+                using (var crypter = new System.Security.Cryptography.RijndaelManaged())
                 {
-                    using (var from = new MemoryStream(encrypted))
+                    KeyInfo key = GetKeyInfo(KeyName, iv, crypter);
+                    var encrypted = Convert.FromBase64String(vals[1]);
+                    byte[] decrypted;
+                    int decryptedByteCount = 0;
+                    crypter.IV = iv;
+                    crypter.Key = key.KeyBytes;
+                    crypter.Mode = CipherMode.CBC;
+                    using (var cipher = crypter.CreateDecryptor())
                     {
-                        using (var reader = new CryptoStream(from, cipher, CryptoStreamMode.Read))
+                        using (var from = new MemoryStream(encrypted))
                         {
-                            decrypted = new byte[encrypted.Length];
-                            decryptedByteCount = reader.Read(decrypted, 0, decrypted.Length);
+                            using (var reader = new CryptoStream(from, cipher, CryptoStreamMode.Read))
+                            {
+                                decrypted = new byte[encrypted.Length];
+                                decryptedByteCount = reader.Read(decrypted, 0, decrypted.Length);
+                            }
                         }
                     }
+                    retVal = Encoding.Unicode.GetString(decrypted, 0, decryptedByteCount);
                 }
-                retVal = Encoding.Unicode.GetString(decrypted, 0, decryptedByteCount);
             }
             if (null != IntegrityFunction)
             {
@@ -189,5 +199,37 @@ namespace EncryptedType
             return retVal;
         }
 
+        public KeyInfo GetKeyInfo(string KeyName, byte[] IV, SymmetricAlgorithm Crypter)
+        {
+            if(null == this.KeyCache )
+                lock(_sharedKeyCacheLock)
+                {
+                    if(null == this.KeyCache)
+                        this.KeyCache = new Dictionary<string,KeyInfo>();
+                }
+            if (KeyCache.ContainsKey(KeyName))
+                return KeyCache[KeyName];
+            string keyValue = null;
+            KeyInfo retVal = new KeyInfo();
+            if (null != this.SharedKeyServer)
+                keyValue = this.SharedKeyServer.GetKey(KeyName);
+            if (null == keyValue && null != this.KeyServer)
+                keyValue = this.KeyServer.GetKey(KeyName);
+            if(null != keyValue)
+            {
+                retVal.KeyValue = keyValue;
+                int keySize = Crypter.KeySize;
+                byte[] workingBytes = new Rfc2898DeriveBytes(keyValue, IV).GetBytes(keySize / 4);
+                retVal.KeyBytes = new ArraySegment<byte>(workingBytes, 0, keySize / 8).ToArray();
+                retVal.SecretBytes = new ArraySegment<byte>(workingBytes, keySize / 8 , keySize / 8).ToArray();
+                if(!KeyCache.ContainsKey(KeyName))
+                    lock(_sharedKeyCacheLock)
+                    {
+                        if (!KeyCache.ContainsKey(KeyName))
+                            KeyCache.Add(KeyName, retVal);
+                    }
+            }
+            return retVal;
+        }
     }
 }

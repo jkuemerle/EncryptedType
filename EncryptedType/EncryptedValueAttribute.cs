@@ -27,6 +27,9 @@ namespace EncryptedType
             propname = targetLocation.Name;
         }
 
+        [ImportMember("KeyCache", IsRequired=true)]
+        public Property<IDictionary<string,KeyInfo>> KeyCacheStore;
+
         [ImportMember("EncryptedValues", IsRequired = true)]
         public Property<IDictionary<string, string>> EncryptedValuesStore;
 
@@ -57,7 +60,7 @@ namespace EncryptedType
                 Func<string> integrity = null;
                 if (null != this.IntegrityFunction.Get() && this.IntegrityFunction.Get().ContainsKey(propname))
                     integrity = this.IntegrityFunction.Get()[propname];
-                var encrypted = Encrypt(args.Value.ToString(), KeyServer.Get().GetKey(keyName),integrity);
+                var encrypted = Encrypt(args.Value.ToString(), keyName, integrity);
                 if (null != EncryptedValuesStore.Get())
                     if (!EncryptedValuesStore.Get().ContainsKey(propname))
                         EncryptedValuesStore.Get().Add(propname, encrypted);

@@ -5,8 +5,24 @@ using System.Linq.Expressions;
 
 namespace EncryptedType
 {
+    public struct KeyInfo
+    {
+        public string KeyValue { get; set; }
+
+        public byte[] KeyBytes { get; set; }
+
+        public byte[] SecretBytes { get; set; }
+
+        public KeyInfo(string Value)
+            : this()
+        {
+            this.KeyValue = Value;
+        }
+    }
     public interface IEncryptedType
     {
+        IDictionary<string, KeyInfo> KeyCache { get; set; }
+
         IDictionary<string, string> EncryptionKeys { get; set; }
 
         IKeyServer KeyServer { get; set; }
