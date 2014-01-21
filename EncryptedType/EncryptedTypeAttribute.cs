@@ -231,8 +231,10 @@ namespace EncryptedType
                 retVal.KeyValue = keyValue;
                 int keySize = Crypter.KeySize;
                 byte[] workingBytes = new Rfc2898DeriveBytes(keyValue, IV).GetBytes(keySize / 4);
-                retVal.KeyBytes = new ArraySegment<byte>(workingBytes, 0, keySize / 8).ToArray();
-                retVal.SecretBytes = new ArraySegment<byte>(workingBytes, keySize / 8 , keySize / 8).ToArray();
+                //retVal.KeyBytes = new ArraySegment<byte>(workingBytes, 0, keySize / 8).ToArray();
+                //retVal.SecretBytes = new ArraySegment<byte>(workingBytes, keySize / 8 , keySize / 8).ToArray();
+                retVal.KeyBytes = workingBytes.Take(keySize / 8).ToArray(); 
+                retVal.SecretBytes = workingBytes.Skip(keySize / 8).Take(keySize / 8).ToArray();
                 if(!KeyCache.ContainsKey(KeyName))
                     lock(_sharedKeyCacheLock)
                     {
