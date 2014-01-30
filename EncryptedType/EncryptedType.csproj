@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CertificateEncryptedValueAttribute.cs" />
     <Compile Include="EncryptedTypeAttribute.cs" />
     <Compile Include="EncryptedValueAttribute.cs" />
     <Compile Include="Extensions.cs" />

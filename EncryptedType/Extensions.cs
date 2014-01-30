@@ -9,12 +9,12 @@ namespace System
 {
     public static class SystemExtensions
     {
-        public static byte[] FillWithEntropy(this byte[] ToFill)
-        {
-            var rng = new RNGCryptoServiceProvider();
-            rng.GetBytes(ToFill);
-            return ToFill;
-        }
+        //public static byte[] FillWithEntropy(this byte[] ToFill)
+        //{
+        //    var rng = new RNGCryptoServiceProvider();
+        //    rng.GetBytes(ToFill);
+        //    return ToFill;
+        //}
 
     }
 }

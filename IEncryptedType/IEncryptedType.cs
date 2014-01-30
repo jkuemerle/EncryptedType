@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq.Expressions;
+using System.Security.Cryptography;
 
 namespace EncryptedType
 {
@@ -18,7 +19,44 @@ namespace EncryptedType
         {
             this.KeyValue = Value;
         }
+
+        public KeyInfo(byte[] keyBytes, byte[] secretBytes) : this()
+        {
+            this.KeyBytes = keyBytes;
+            this.SecretBytes = secretBytes;
+        }
     }
+
+    public class SymmetricMetaData
+    {
+        public KeyInfo Key { get; set; }
+
+        public byte[] IV { get; set; }
+
+        public SymmetricAlgorithm Crypter { get; set; }
+
+        private SymmetricMetaData() { } 
+
+        public static SymmetricMetaData NewRandom()
+        {
+            SymmetricMetaData retVal = new SymmetricMetaData();
+            retVal.Crypter = GetCrypter();
+            retVal.IV = new byte[retVal.Crypter.BlockSize / 8].FillWithEntropy();
+            retVal.Key = new KeyInfo(new byte[retVal.Crypter.BlockSize / 8].FillWithEntropy(),
+                new byte[retVal.Crypter.BlockSize / 8].FillWithEntropy());
+            return retVal;
+        }
+
+        private static SymmetricAlgorithm GetCrypter()
+        {
+            var crypter = new System.Security.Cryptography.RijndaelManaged();
+            crypter.Mode = CipherMode.CBC;
+            return crypter;
+        }
+
+    }
+
+
     public interface IEncryptedType
     {
         IDictionary<string, KeyInfo> KeyCache { get; set; }
@@ -40,6 +78,13 @@ namespace System
 {
     public static class Extensions
     {
+        public static byte[] FillWithEntropy(this byte[] ToFill)
+        {
+            var rng = new RNGCryptoServiceProvider();
+            rng.GetBytes(ToFill);
+            return ToFill;
+        }
+
         public static object AsClear<T>(this T Item, Expression<Func<object>> Property) where T : EncryptedType.IEncryptedType
         {
             return ((EncryptedType.IEncryptedType)Item).ClearText(Property.PropertyName());

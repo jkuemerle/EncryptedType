@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CertificateEncryptionTest.cs" />
     <Compile Include="RequiresPostSharp.cs" />
     <Compile Include="EncryptionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

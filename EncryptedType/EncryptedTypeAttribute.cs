@@ -17,6 +17,7 @@ namespace EncryptedType
     [PSerializable]
     [AttributeUsage(AttributeTargets.Class)]
     [AspectTypeDependency(AspectDependencyAction.Order, AspectDependencyPosition.Before, typeof(EncryptedValueAttribute))]
+    [AspectTypeDependency(AspectDependencyAction.Order, AspectDependencyPosition.Before, typeof(CertificateEncryptedValueAttribute))]
     [IntroduceInterface(typeof(IEncryptedType), OverrideAction = InterfaceOverrideAction.Ignore)]
     public class EncryptedTypeAttribute : InstanceLevelAspect, IEncryptedType
     {
@@ -104,28 +105,44 @@ namespace EncryptedType
             if (null != IntegrityFunction)
                 Data = AddHMAC(Data, IntegrityFunction);
             var val = System.Text.UnicodeEncoding.Unicode.GetBytes(Data);
-            using (var crypter = new System.Security.Cryptography.RijndaelManaged())
+            var crypter = new System.Security.Cryptography.RijndaelManaged();
+            var iv = new byte[crypter.BlockSize / 8].FillWithEntropy();
+            KeyInfo key = GetKeyInfo(KeyName, iv, crypter);
+            return Encrypt(val, iv, key.KeyBytes, key.SecretBytes, crypter);
+        }
+
+        [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
+        public string Encrypt(string val, string iv, string key, string secret, SymmetricAlgorithm crypter)
+        {
+            return Encrypt(Convert.FromBase64String(val), Convert.FromBase64String(iv), Convert.FromBase64String(key), Convert.FromBase64String(secret), crypter);
+        }
+
+        [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
+        public string Encrypt(byte[] val, SymmetricMetaData metadata)
+        {
+            return Encrypt(val, metadata.IV, metadata.Key.KeyBytes, metadata.Key.SecretBytes, metadata.Crypter);
+        }
+
+        [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
+        public string Encrypt(byte[] val, byte[] iv, byte[] key, byte[] secret, SymmetricAlgorithm crypter)
+        {
+            byte[] encrypted;
+            crypter.IV = iv;
+            crypter.Key = key;
+            crypter.Mode = CipherMode.CBC;
+            using (var encrypter = crypter.CreateEncryptor())
             {
-                var iv = new byte[crypter.BlockSize / 8].FillWithEntropy();
-                KeyInfo key = GetKeyInfo(KeyName, iv, crypter);
-                byte[] encrypted;
-                crypter.IV = iv;
-                crypter.Key = key.KeyBytes;
-                crypter.Mode = CipherMode.CBC;
-                using (var encrypter = crypter.CreateEncryptor())
+                using (var to = new MemoryStream())
                 {
-                    using (var to = new MemoryStream())
+                    using (var writer = new CryptoStream(to, encrypter, CryptoStreamMode.Write))
                     {
-                        using (var writer = new CryptoStream(to, encrypter, CryptoStreamMode.Write))
-                        {
-                            writer.Write(val, 0, val.Length);
-                            writer.FlushFinalBlock();
-                            encrypted = to.ToArray();
-                        }
+                        writer.Write(val, 0, val.Length);
+                        writer.FlushFinalBlock();
+                        encrypted = to.ToArray();
                     }
                 }
-                return string.Format("{0}\0{1}\0{2}", Convert.ToBase64String(iv), Convert.ToBase64String(encrypted), ComputeHMAC(encrypted,key.SecretBytes));
             }
+            return string.Format("{0}\0{1}\0{2}", Convert.ToBase64String(iv), Convert.ToBase64String(encrypted), ComputeHMAC(encrypted, secret));
         }
 
         private string AddHMAC(string Data, Func<string> Integrity)
@@ -165,38 +182,16 @@ namespace EncryptedType
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
         public string Decrypt(string Data, string KeyName, Func<string> IntegrityFunction)
         {
-            string retVal = null;
             var vals = Data.Split('\0');
+            var iv = Convert.FromBase64String(vals[0]);
+            var encrypted = Convert.FromBase64String(vals[1]);
+            var mac = vals[2];
+            var crypter = new System.Security.Cryptography.RijndaelManaged();
+            KeyInfo key = GetKeyInfo(KeyName, iv, crypter);
             if (vals.Length > 2)
             {
-                using (var crypter = new System.Security.Cryptography.RijndaelManaged())
-                {
-                    var iv = Convert.FromBase64String(vals[0]);
-                    KeyInfo key = GetKeyInfo(KeyName, iv, crypter);
-                    var encrypted = Convert.FromBase64String(vals[1]);
-                    var mac = vals[2];
-                    if (mac == ComputeHMAC(encrypted, key.SecretBytes))
-                    {
-                        byte[] decrypted;
-                        int decryptedByteCount = 0;
-                        crypter.IV = iv;
-                        crypter.Key = key.KeyBytes;
-                        crypter.Mode = CipherMode.CBC;
-                        using (var cipher = crypter.CreateDecryptor())
-                        {
-                            using (var from = new MemoryStream(encrypted))
-                            {
-                                using (var reader = new CryptoStream(from, cipher, CryptoStreamMode.Read))
-                                {
-                                    decrypted = new byte[encrypted.Length];
-                                    decryptedByteCount = reader.Read(decrypted, 0, decrypted.Length);
-                                }
-                            }
-                        }
-                        retVal = Encoding.Unicode.GetString(decrypted, 0, decryptedByteCount);
-                    }
-                }
             }
+            string retVal = Decrypt(encrypted, mac, iv, key.KeyBytes, key.SecretBytes, crypter);
             if (null != IntegrityFunction)
             {
                 var values = retVal.Split('\0');
@@ -208,6 +203,32 @@ namespace EncryptedType
                     retVal = null;
             }
             return retVal;
+        }
+
+        [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
+        public string Decrypt(byte[] encrypted, string mac, byte[] iv, byte[] key, byte[] secret, SymmetricAlgorithm crypter)
+        {
+            if (mac == ComputeHMAC(encrypted, secret))
+            {
+                byte[] decrypted;
+                int decryptedByteCount = 0;
+                crypter.IV = iv;
+                crypter.Key = key;
+                crypter.Mode = CipherMode.CBC;
+                using (var cipher = crypter.CreateDecryptor())
+                {
+                    using (var from = new MemoryStream(encrypted))
+                    {
+                        using (var reader = new CryptoStream(from, cipher, CryptoStreamMode.Read))
+                        {
+                            decrypted = new byte[encrypted.Length];
+                            decryptedByteCount = reader.Read(decrypted, 0, decrypted.Length);
+                        }
+                    }
+                }
+                return Encoding.Unicode.GetString(decrypted, 0, decryptedByteCount);
+            }
+            return null;
         }
 
         public KeyInfo GetKeyInfo(string KeyName, byte[] IV, SymmetricAlgorithm Crypter)
@@ -231,8 +252,6 @@ namespace EncryptedType
                 retVal.KeyValue = keyValue;
                 int keySize = Crypter.KeySize;
                 byte[] workingBytes = new Rfc2898DeriveBytes(keyValue, IV).GetBytes(keySize / 4);
-                //retVal.KeyBytes = new ArraySegment<byte>(workingBytes, 0, keySize / 8).ToArray();
-                //retVal.SecretBytes = new ArraySegment<byte>(workingBytes, keySize / 8 , keySize / 8).ToArray();
                 retVal.KeyBytes = workingBytes.Take(keySize / 8).ToArray(); 
                 retVal.SecretBytes = workingBytes.Skip(keySize / 8).Take(keySize / 8).ToArray();
                 if(!KeyCache.ContainsKey(KeyName))
