@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>IEncryptedType</id>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <title>IEncryptedType</title>
     <authors>Joe Kuemerle</authors>
     <owners>Joe Kuemerle</owners>
@@ -10,8 +10,8 @@
     <projectUrl>http://github.com/jkuemerle/EncryptedType</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Library of interfaces used by the EncryptedType transparent field and property encryption.</description>
-    <releaseNotes>Performance improvements and per-property integrity functions.</releaseNotes>
-    <copyright>Copyright 2013</copyright>
+    <releaseNotes>Fix up random IV generator.</releaseNotes>
+    <copyright>Copyright 2015</copyright>
     <tags>encryption security decryption AES</tags>
   </metadata>
   <files>

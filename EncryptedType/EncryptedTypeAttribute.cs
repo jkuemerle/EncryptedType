@@ -105,10 +105,9 @@ namespace EncryptedType
             if (null != IntegrityFunction)
                 Data = AddHMAC(Data, IntegrityFunction);
             var val = System.Text.UnicodeEncoding.Unicode.GetBytes(Data);
-            var crypter = new System.Security.Cryptography.RijndaelManaged();
-            var iv = new byte[crypter.BlockSize / 8].FillWithEntropy();
-            KeyInfo key = GetKeyInfo(KeyName, iv, crypter);
-            return Encrypt(val, iv, key.KeyBytes, key.SecretBytes, crypter);
+            var symmetric = SymmetricMetaData.RandomIV();
+            symmetric.Key = GetKeyInfo(KeyName, symmetric.IV, symmetric.Crypter);
+            return Encrypt(val, symmetric);
         }
 
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
@@ -203,6 +202,12 @@ namespace EncryptedType
                     retVal = null;
             }
             return retVal;
+        }
+
+        [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
+        public string Decrypt(string Data, string mac, SymmetricMetaData metadata)
+        {
+            return Decrypt(Convert.FromBase64String(Data), mac, metadata.IV, metadata.Key.KeyBytes, metadata.Key.SecretBytes, metadata.Crypter);
         }
 
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]

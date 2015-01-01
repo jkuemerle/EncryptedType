@@ -47,6 +47,14 @@ namespace EncryptedType
             return retVal;
         }
 
+        public static SymmetricMetaData RandomIV()
+        {
+            SymmetricMetaData retVal = new SymmetricMetaData();
+            retVal.Crypter = GetCrypter();
+            retVal.IV = new byte[retVal.Crypter.BlockSize / 8].FillWithEntropy();
+            return retVal;
+        }
+
         private static SymmetricAlgorithm GetCrypter()
         {
             var crypter = new System.Security.Cryptography.RijndaelManaged();
