@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>EncryptedType.RavenDB</id>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
     <title>EncryptedType.RavenDB</title>
     <authors>Joe Kuemerle</authors>
     <owners>Joe Kuemerle</owners>
@@ -10,13 +10,14 @@
     <projectUrl>http://github.com/jkuemerle/EncryptedType</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Library for implementing transparent encryption of fields and/or properties and persisting to RavenDB.</description>
-    <releaseNotes>Added Encrypt-then-MAC for improved encryption security.</releaseNotes>
-    <copyright>Copyright 2013</copyright>
+    <releaseNotes>Fixed attribute inheritance.</releaseNotes>
+    <copyright>Copyright 2015</copyright>
     <tags>encryption security decryption AES RavenDB</tags>
     <dependencies>
       <dependency id="IEncryptedType" version="0.0" />
       <dependency id="EncryptedType" version="0.0" />
-      <dependency id="PostSharp" version="3.0" />
+      <dependency id="PostSharp" version="4.0" />
+      <dependency id="RavenDB.Client" version="2.5" />
     </dependencies>	
   </metadata>
   <files>

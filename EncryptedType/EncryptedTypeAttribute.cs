@@ -11,14 +11,16 @@ using PostSharp.Serialization;
 using PostSharp.Aspects;
 using PostSharp.Aspects.Advices;
 using PostSharp.Aspects.Dependencies;
+using PostSharp.Extensibility;
 
 namespace EncryptedType
 {
     [PSerializable]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class,Inherited=true,AllowMultiple=false)]
+    [MulticastAttributeUsage(MulticastTargets.Class, Inheritance = MulticastInheritance.Multicast, AllowMultiple=false, PersistMetaData=true)]
     [AspectTypeDependency(AspectDependencyAction.Order, AspectDependencyPosition.Before, typeof(EncryptedValueAttribute))]
     [AspectTypeDependency(AspectDependencyAction.Order, AspectDependencyPosition.Before, typeof(CertificateEncryptedValueAttribute))]
-    [IntroduceInterface(typeof(IEncryptedType), OverrideAction = InterfaceOverrideAction.Ignore)]
+    [IntroduceInterface(typeof(IEncryptedType), OverrideAction = InterfaceOverrideAction.Default)]
     public class EncryptedTypeAttribute : InstanceLevelAspect, IEncryptedType
     {
         protected static IKeyServer _sharedKeyServer;
@@ -174,6 +176,10 @@ namespace EncryptedType
 
         private static string ComputeHMAC(byte[] Data, byte[] Key)
         {
+            if(null == Data || null == Key)
+            {
+                return null;
+            }
             var hmac = new HMACSHA256() { Key = Key };
             return Convert.ToBase64String(hmac.ComputeHash(Data));
         }
@@ -259,12 +265,12 @@ namespace EncryptedType
                 byte[] workingBytes = new Rfc2898DeriveBytes(keyValue, IV).GetBytes(keySize / 4);
                 retVal.KeyBytes = workingBytes.Take(keySize / 8).ToArray(); 
                 retVal.SecretBytes = workingBytes.Skip(keySize / 8).Take(keySize / 8).ToArray();
-                if(!KeyCache.ContainsKey(KeyName))
-                    lock(_sharedKeyCacheLock)
-                    {
-                        if (!KeyCache.ContainsKey(KeyName))
-                            KeyCache.Add(KeyName, retVal);
-                    }
+                //if(!KeyCache.ContainsKey(KeyName))
+                //    lock(_sharedKeyCacheLock)
+                //    {
+                //        if (!KeyCache.ContainsKey(KeyName))
+                //            KeyCache.Add(KeyName, retVal);
+                //    }
             }
             return retVal;
         }

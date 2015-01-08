@@ -13,11 +13,12 @@ using Raven.Imports.Newtonsoft.Json;
 
 using EncryptedType;
 using EncryptedType.RavenDB;
+using PostSharp.Extensibility;
 
 namespace EncryptedType.RavenDB
 {
     [PSerializable]
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, Inherited=true)]
     [AspectTypeDependency(AspectDependencyAction.Order, AspectDependencyPosition.Before, typeof(RavenEncryptedValueAttribute))]
     [AspectTypeDependency(AspectDependencyAction.Order, AspectDependencyPosition.After, typeof(RavenSeekableTypeAttribute))]
     [AspectTypeDependency(AspectDependencyAction.Order, AspectDependencyPosition.After, typeof(RavenSeekableValueAttribute))]
@@ -51,5 +52,39 @@ namespace EncryptedType.RavenDB
                 base.KeyServer = value;
             }
         }
+
+        [Raven.Imports.Newtonsoft.Json.JsonIgnore]
+        [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
+        [CopyCustomAttributes(typeof(Raven.Imports.Newtonsoft.Json.JsonIgnoreAttribute))]
+        public IDictionary<string, KeyInfo> KeyCache
+        {
+            get { return _sharedKeyCache; }
+            set
+            {
+                lock (_sharedKeyCacheLock)
+                {
+                    _sharedKeyCache = value;
+                }
+            }
+        }
+
+        [Raven.Imports.Newtonsoft.Json.JsonIgnore]
+        [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
+        [CopyCustomAttributes(typeof(Raven.Imports.Newtonsoft.Json.JsonIgnoreAttribute))]
+        public IKeyServer SharedKeyServer
+        {
+            get
+            {
+                return _sharedKeyServer;
+            }
+            set
+            {
+                lock (_sharedKeyServer)
+                {
+                    _sharedKeyServer = value;
+                }
+            }
+        }
+
     }
 }

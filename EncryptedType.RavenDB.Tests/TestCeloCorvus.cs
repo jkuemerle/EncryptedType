@@ -51,6 +51,7 @@ namespace CeloCorvus.Tests
             var n = new EncTest();
             ((IEncryptedType)n).KeyServer = ks;
             ((IEncryptedType)n).EncryptionKeys.Add("SSN", "Key1");
+            //((IEncryptedType)n).EncryptionKeys.Add(() => n.SSN, "Key1");
             ((IEncryptedType)n).Integrity(() => n.SSN, n.IntegrityValue);
             //n.SSN = "111-11-1111";
             n.SSN = "222-22-2222";
