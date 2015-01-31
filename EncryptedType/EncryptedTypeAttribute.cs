@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,10 +38,7 @@ namespace EncryptedType
             }
             set
             {
-                lock (_sharedKeyServer)
-                {
-                    _sharedKeyServer = value;
-                }
+                _sharedKeyServer = value;
             }
         }
 
@@ -82,8 +80,8 @@ namespace EncryptedType
 
         public override void RuntimeInitializeInstance()
         {
-            EncryptedValues = new Dictionary<string, string>();
-            EncryptionKeys = new Dictionary<string, string>();
+            EncryptedValues = new ConcurrentDictionary<string, string>();
+            EncryptionKeys = new ConcurrentDictionary<string, string>();
             base.RuntimeInitializeInstance();
         }
 
@@ -248,7 +246,7 @@ namespace EncryptedType
                 lock(_sharedKeyCacheLock)
                 {
                     if(null == this.KeyCache)
-                        this.KeyCache = new Dictionary<string,KeyInfo>();
+                        this.KeyCache = new ConcurrentDictionary<string, KeyInfo>();
                 }
             if (KeyCache.ContainsKey(KeyName))
                 return KeyCache[KeyName];

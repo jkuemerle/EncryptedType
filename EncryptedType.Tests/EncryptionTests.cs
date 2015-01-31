@@ -70,7 +70,6 @@ namespace EncryptedType.Tests
             n.SSN = "111-11-1111";
             var clear = ((IEncryptedType)n).AsClear(() => n.SSN);
             Assert.AreEqual("111-11-1111", clear);
-
         }
 
         //[Test]
