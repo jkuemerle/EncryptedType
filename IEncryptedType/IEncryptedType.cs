@@ -93,9 +93,9 @@ namespace System
             return ToFill;
         }
 
-        public static object AsClear<T>(this T Item, Expression<Func<object>> Property) where T : EncryptedType.IEncryptedType
+        public static object AsClear<TObject, TValue>(this TObject Item, Expression<Func< TValue>> Property) where TObject : EncryptedType.IEncryptedType
         {
-            return ((EncryptedType.IEncryptedType)Item).ClearText(Property.PropertyName());
+            return ((EncryptedType.IEncryptedType)Item).ClearText(Property.PropertyName<TValue>());
         }
 
         public static T Key<T>(this T Item, Expression<Func<object>> Property, string KeyName) where T: EncryptedType.IEncryptedType
@@ -139,7 +139,7 @@ namespace System
             return Item;
         }
 
-        public static string PropertyName(this Expression<Func<object>> Property)
+        public static string PropertyName<T>(this Expression<Func<T>> Property)
         {
             MemberExpression memberExpression = null;
             if (Property.Body.NodeType == ExpressionType.Convert)

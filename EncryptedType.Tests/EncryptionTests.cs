@@ -68,7 +68,8 @@ namespace EncryptedType.Tests
             ((IEncryptedType)n).Key(() => n.SSN, "Key1");
             ((IEncryptedType)n).Integrity(() => n.SSN, n.IntegrityValue);
             n.SSN = "111-11-1111";
-            Assert.AreEqual("111-11-1111", ((IEncryptedType)n).AsClear(() => n.SSN));
+            var clear = ((IEncryptedType)n).AsClear(() => n.SSN);
+            Assert.AreEqual("111-11-1111", clear);
 
         }
 
