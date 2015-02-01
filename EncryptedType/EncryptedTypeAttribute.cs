@@ -158,7 +158,7 @@ namespace EncryptedType
                 var values = Data.Split('\0');
                 if (values.Length < 2)
                     return false;
-                return values[1] == ComputeHMAC(values[0], Integrity);
+                return values[1].ConstantTimeCompare(ComputeHMAC(values[0], Integrity));
             }
             catch (Exception ex)
             {
@@ -217,7 +217,7 @@ namespace EncryptedType
         [IntroduceMember(IsVirtual = false, OverrideAction = MemberOverrideAction.OverrideOrFail, Visibility = PostSharp.Reflection.Visibility.Public)]
         public string Decrypt(byte[] encrypted, string mac, byte[] iv, byte[] key, byte[] secret, SymmetricAlgorithm crypter)
         {
-            if (mac == ComputeHMAC(encrypted, secret))
+            if (mac.ConstantTimeCompare(ComputeHMAC(encrypted, secret)))
             {
                 byte[] decrypted;
                 int decryptedByteCount = 0;

@@ -158,5 +158,23 @@ namespace System
             var propName = (memberExpression.Member as PropertyInfo).Name;
             return propName;
         }
+
+        public static bool ConstantTimeCompare(this string First, string Second)
+        {
+            bool result = true;
+            if(First.Length != Second.Length)
+            {
+                result = false;
+            }
+            int max = First.Length > Second.Length ? Second.Length : First.Length;
+            for (int i = 0; i < max; i++ )
+            {
+                if(First[i] != Second[i])
+                {
+                    result = false;
+                }
+            }
+            return result;
+        }
     }
 }
