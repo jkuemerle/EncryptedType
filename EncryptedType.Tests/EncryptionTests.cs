@@ -72,6 +72,19 @@ namespace EncryptedType.Tests
             Assert.AreEqual("111-11-1111", clear);
         }
 
+        [Test]
+        public void TestExtensionMenthods()
+        {
+            var n = new EncTest();
+            var s = new CeloClavis.TestServer();
+            n.SetKeyServer(s);
+            n.SetKey(() => n.SSN, "Key1");
+            n.SetIntegrity(() => n.SSN, n.IntegrityValue);
+            n.SSN = "111-11-1111";
+            var clear = n.GetClearText(() => n.SSN);
+            Assert.AreEqual("111-11-1111", clear);
+
+        }
         //[Test]
         //public void TestSharedKeyServer()
         //{

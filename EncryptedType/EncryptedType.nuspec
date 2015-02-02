@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>EncryptedType</id>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
     <title>EncryptedType</title>
     <authors>Joe Kuemerle</authors>
     <owners>Joe Kuemerle</owners>
@@ -10,11 +10,11 @@
     <projectUrl>http://github.com/jkuemerle/EncryptedType</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Library for implementing transparent encryption of fields and/or properties.</description>
-    <releaseNotes>Fixed attribute inheritance.</releaseNotes>
+    <releaseNotes>Cleaned up implementation, IEncryptedType adds cleaner extension methods.</releaseNotes>
     <copyright>Copyright 2015</copyright>
     <tags>encryption security decryption AES</tags>
     <dependencies>
-      <dependency id="IEncryptedType" version="0.0" />
+      <dependency id="IEncryptedType" version="0.0.4" />
       <dependency id="PostSharp" version="4.0" />
     </dependencies>	
   </metadata>

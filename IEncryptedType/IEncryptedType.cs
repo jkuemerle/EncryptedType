@@ -98,7 +98,45 @@ namespace System
             return ((EncryptedType.IEncryptedType)Item).ClearText(Property.PropertyName<TValue>());
         }
 
-        public static T Key<T>(this T Item, Expression<Func<object>> Property, string KeyName) where T: EncryptedType.IEncryptedType
+        public static object GetClearText<TObject, TValue>(this TObject Item, Expression<Func<TValue>> Property)
+        {
+            var obj = (EncryptedType.IEncryptedType) Item;
+            if(null == obj )
+            {
+                return default(TObject);
+            }
+            return obj.AsClear(Property);
+                //((IEncryptedType)n).AsClear(() => n.SSN);
+        }
+
+        public static object SetKeyServer<T>(this T Item, EncryptedType.IKeyServer KeyServer)
+        {
+            var obj = (EncryptedType.IEncryptedType)Item;
+            if (null == obj)
+            {
+                return default(T);
+            }
+            obj.KeyServer(KeyServer);
+            return obj;
+        }
+
+        public static TObject SetKey<TObject, TValue>(this TObject Item, Expression<Func<TValue>> Property, string KeyName)
+        {
+            var obj = (EncryptedType.IEncryptedType)Item;
+            if(null == obj)
+            {
+                return default(TObject);
+            }
+            string propName = Property.PropertyName();
+            if (null != obj.EncryptionKeys)
+                if (obj.EncryptionKeys.ContainsKey(propName))
+                    obj.EncryptionKeys[propName] = KeyName;
+                else
+                    obj.EncryptionKeys.Add(propName, KeyName);
+            return (TObject) obj;
+        }
+        
+        public static T Key<T>(this T Item, Expression<Func<object>> Property, string KeyName) where T : EncryptedType.IEncryptedType
         {
             string propName = Property.PropertyName();
             if (null != ((EncryptedType.IEncryptedType)Item).EncryptionKeys)
@@ -108,7 +146,7 @@ namespace System
                     ((EncryptedType.IEncryptedType)Item).EncryptionKeys.Add(propName, KeyName);
             return Item;
         }
-
+ 
         public static T Integrity<T>(this T Item, string PropertyName, Func<string> Function) where T : EncryptedType.IEncryptedType
         {
             if(null != Item.Integrity)
@@ -133,6 +171,26 @@ namespace System
             }
             return Item;
         }
+
+        public static TObject SetIntegrity<TObject, TValue>(this TObject Item, Expression<Func<TValue>> Property, Func<string> Function)
+        {
+            var obj = (EncryptedType.IEncryptedType)Item;
+            if (null == obj)
+            {
+                return default(TObject);
+            }
+            string propName = Property.PropertyName();
+            if (null != obj.Integrity)
+            {
+                if (obj.Integrity.ContainsKey(propName))
+                    obj.Integrity[propName] = Function;
+                else
+                    obj.Integrity.Add(propName, Function);
+            }
+            return (TObject) obj;
+
+        }
+
         public static T KeyServer<T>(this T Item, EncryptedType.IKeyServer Server) where T : EncryptedType.IEncryptedType
         {
             ((EncryptedType.IEncryptedType)Item).KeyServer = Server;
