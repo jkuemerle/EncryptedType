@@ -40,7 +40,7 @@ namespace EncryptedType.Tests
         {
             var n = new EncTest();
             var s = new CeloClavis.TestServer();
-            ((IEncryptedType)n).KeyServer = s;
+            ((IEncryptedType)n).KeyServers = new List<IKeyServer>() { s };
             ((IEncryptedType)n).EncryptionKeys = s.Map;
             ((IEncryptedType)n).Integrity("SSN", n.IntegrityValue);   
             n.SSN = "111-11-1111";
@@ -52,7 +52,7 @@ namespace EncryptedType.Tests
         {
             var n = new EncTest();
             var s = new CeloClavis.TestServer();
-            ((IEncryptedType)n).KeyServer = s;
+            ((IEncryptedType)n).KeyServers = new List<IKeyServer>() { s };
             ((IEncryptedType)n).EncryptionKeys = s.Map;
             ((IEncryptedType)n).Integrity(() => n.SSN, n.IntegrityValue);
             n.SSN = "111-11-1111";

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
+using EncryptedType;
 
 namespace EncryptedType
 {
@@ -71,13 +72,11 @@ namespace EncryptedType
 
         IDictionary<string, string> EncryptionKeys { get; set; }
 
-        IKeyServer KeyServer { get; set; }
-
         IDictionary<string, Func<string>> Integrity { get; set; }
 
         object ClearText(string PropertyName);
 
-        IKeyServer SharedKeyServer { get; set; }
+        IEnumerable<IKeyServer> KeyServers { get; set; }
 
     }
 }
@@ -86,12 +85,6 @@ namespace System
 {
     public static class Extensions
     {
-        public static byte[] FillWithEntropy(this byte[] ToFill)
-        {
-            var rng = new RNGCryptoServiceProvider();
-            rng.GetBytes(ToFill);
-            return ToFill;
-        }
 
         public static object AsClear<TObject, TValue>(this TObject Item, Expression<Func< TValue>> Property) where TObject : EncryptedType.IEncryptedType
         {
@@ -193,7 +186,18 @@ namespace System
 
         public static T KeyServer<T>(this T Item, EncryptedType.IKeyServer Server) where T : EncryptedType.IEncryptedType
         {
-            ((EncryptedType.IEncryptedType)Item).KeyServer = Server;
+            if (null == ((EncryptedType.IEncryptedType)Item).KeyServers)
+            {
+                ((EncryptedType.IEncryptedType)Item).KeyServers = new List<IKeyServer>() { Server };
+            }
+            else
+            {
+                var test = ((IList<IKeyServer>)((EncryptedType.IEncryptedType)Item).KeyServers);
+                if (!test.Contains(Server))
+                {
+                    test.Add(Server);
+                }
+            }
             return Item;
         }
 
@@ -217,22 +221,5 @@ namespace System
             return propName;
         }
 
-        public static bool ConstantTimeCompare(this string First, string Second)
-        {
-            bool result = true;
-            if(First.Length != Second.Length)
-            {
-                result = false;
-            }
-            int max = First.Length > Second.Length ? Second.Length : First.Length;
-            for (int i = 0; i < max; i++ )
-            {
-                if(First[i] != Second[i])
-                {
-                    result = false;
-                }
-            }
-            return result;
-        }
     }
 }

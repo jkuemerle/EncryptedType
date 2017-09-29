@@ -36,17 +36,14 @@ namespace EncryptedType
         [ImportMember("EncryptionKeys", IsRequired = true)]
         public Property<IDictionary<string, string>> EncryptionKeysStore;
 
-        [ImportMember("KeyServer", IsRequired = true)]
-        public Property<IKeyServer> KeyServer;
+        [ImportMember("KeyServers", IsRequired = true)]
+        public Property<IEnumerable<IKeyServer>> KeyServers;
 
         [ImportMember("Integrity", IsRequired = false)]
         public Property<IDictionary<string,Func<string>>> IntegrityFunction;
 
-        [ImportMember("Encrypt", IsRequired = true, Order=ImportMemberOrder.AfterIntroductions)]
+        [ImportMember("Encrypt", IsRequired = true, Order = ImportMemberOrder.AfterIntroductions)]
         public Func<string, string, Func<string>, string> Encrypt;
-
-        [ImportMember("Decrypt", IsRequired = true, Order = ImportMemberOrder.AfterIntroductions)]
-        public Func<string, string, Func<string>, string> Decrypt;
 
         public object CreateInstance(AdviceArgs adviceArgs) { return this.MemberwiseClone(); }
 

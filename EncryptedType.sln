@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.15
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EncryptedType", "EncryptedType\EncryptedType.csproj", "{C5C2AB4F-243F-4DC3-A04B-5F09AE430DE5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IEncryptedType", "IEncryptedType\IEncryptedType.csproj", "{6882CD14-904E-447D-A054-D771278509EB}"
@@ -12,6 +14,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EncryptedType.Tests", "EncryptedType.Tests\EncryptedType.Tests.csproj", "{880C0B7E-6352-4363-BBFF-4F01C63BA5BC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CeloClavis", "CeloClavis\CeloClavis.csproj", "{AC1C1C53-DB62-44D3-BE70-0CC52613B6EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IEncryptedType.Tests", "IEncryptedType.Tests\IEncryptedType.Tests.csproj", "{C78EEF74-CF4E-49E2-8C93-6A2F7A495ED3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeyVaultServer", "KeyVaultServer\KeyVaultServer.csproj", "{10BBA8E3-C25A-4566-BBF4-B82DA9BBD262}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSSQLServer", "MSSQLServer\MSSQLServer.csproj", "{C860F329-B361-40E1-9313-B644C147E773}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSSQLServer.Tests", "MSSQLServer.Tests\MSSQLServer.Tests.csproj", "{EC41CBC6-BA61-4343-927C-28431A242C40}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,8 +53,27 @@ Global
 		{AC1C1C53-DB62-44D3-BE70-0CC52613B6EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC1C1C53-DB62-44D3-BE70-0CC52613B6EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC1C1C53-DB62-44D3-BE70-0CC52613B6EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C78EEF74-CF4E-49E2-8C93-6A2F7A495ED3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C78EEF74-CF4E-49E2-8C93-6A2F7A495ED3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C78EEF74-CF4E-49E2-8C93-6A2F7A495ED3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C78EEF74-CF4E-49E2-8C93-6A2F7A495ED3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10BBA8E3-C25A-4566-BBF4-B82DA9BBD262}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10BBA8E3-C25A-4566-BBF4-B82DA9BBD262}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10BBA8E3-C25A-4566-BBF4-B82DA9BBD262}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10BBA8E3-C25A-4566-BBF4-B82DA9BBD262}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C860F329-B361-40E1-9313-B644C147E773}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C860F329-B361-40E1-9313-B644C147E773}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C860F329-B361-40E1-9313-B644C147E773}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C860F329-B361-40E1-9313-B644C147E773}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC41CBC6-BA61-4343-927C-28431A242C40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC41CBC6-BA61-4343-927C-28431A242C40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC41CBC6-BA61-4343-927C-28431A242C40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC41CBC6-BA61-4343-927C-28431A242C40}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {188A6D60-E4BD-430F-9341-2B6EE586B4D3}
 	EndGlobalSection
 EndGlobal

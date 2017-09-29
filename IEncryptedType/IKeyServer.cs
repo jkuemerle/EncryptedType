@@ -4,6 +4,8 @@ namespace EncryptedType
 {
     public interface IKeyServer
     {
+        string ID { get; }
+
         string GetKey(string KeyName);
 
         IList<string> Keys {get;}

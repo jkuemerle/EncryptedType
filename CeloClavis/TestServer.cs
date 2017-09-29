@@ -9,6 +9,8 @@ namespace CeloClavis
 {
     public class TestServer : EncryptedType.IKeyServer
     {
+        public string ID { get{ return "TestServer";} }
+
         public IDictionary<string, string> _keys = new Dictionary<string,string>();
 
         public TestServer()

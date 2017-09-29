@@ -12,6 +12,7 @@ namespace CeloClavis
 {
     public class RavenDBServer : IKeyServer
     {
+        public string ID { get { return "RavenDBServer"; } }
 
         Raven.Client.IDocumentStore docStore;
         Raven.Client.IDocumentSession session;
