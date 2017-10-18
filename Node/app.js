@@ -1,18 +1,36 @@
 const crypto = require('crypto');
-
-
+const fs = require('fs');
+const constants = require('./encryptedTypeConstants.js'); 
+const mockks = require('./mockKeyServer.js');
+var ks = [ mockks ];
 
 var enc = "Key2~AES~HS256~H669DtnhM7uEyjnF/HszYQ==~pMTKFKk5nT5K8XH2PxAuMlBumE56qTpxmbac2sp1Z5wcj60HhDMVmKC2RKumGzh5aCi7mTXmSF5NjFGvXfwVFw==~WTP35Q09qw8U6/aYq1/z3xR7X7Bv8yxRIi2k4fgPf/M=";
 var integrity = "123456";
-var res = Decrypt(enc,integrity);
-console.log(res);    
+var dec = Decrypt(ks,enc,integrity);
+console.log(dec);    
 
-function Encrypt(data,integrity)
+var enc = Encrypt("foo",integrity,ks,"Key2");
+console.log(enc);
+
+
+function Encrypt(data,integrity,keyServers,keyID, hmacID, crypterID)
 {
-
+    if(typeof hmacID === "undefined")
+    {
+        hmacID = constants.HS256;
+    }
+    if(typeof crypterID === "undefined")
+    {
+        crypterID = constants.AES;
+    }    
+    var crypter = GetCrypterProps(crypterID);
+    // generate random iv
+    var iv = crypto.randomBytes(crypter.ivsize);
+    var keyInfo = GetKeyInfo(keyServers,keyID,iv,crypter);
+    return null;
 }
 
-function Decrypt(enc,integrity)
+function Decrypt(keyServers,enc,integrity)
 {
     var fields = enc.split('~');
     var keyID = fields[0];
@@ -25,7 +43,7 @@ function Decrypt(enc,integrity)
     var data = Buffer.from(dataBase64,'base64');
     var hmac = Buffer.from(hmacBase64, 'base64');
     var crypter = GetCrypterProps(crypterID);
-    var keyInfo = GetKeyInfo(keyID,iv,crypter);
+    var keyInfo = GetKeyInfo(keyServers,keyID,iv,crypter);
     crypter = GetCrypter(crypter,crypterID,keyInfo,iv);
     var rawdecrypt = crypter.crypter.update(data, 'hex', 'utf8');
     rawdecrypt += crypter.crypter.final('utf8');
@@ -59,38 +77,65 @@ function hashValue(HMACID, data, integrity)
 
 function getHasher(HMACID, integrity)
 {
-    var ret = crypto.createHmac('sha256', integrity);
+    var ret = null;
+    switch(HMACID)
+    {
+        case constants.HS256 : 
+            ret = crypto.createHmac('sha256', integrity);
+            break;
+    }
     return ret;
 }
 
-function GetKeyInfo(keyID, iv, crypter)
+function GetKeyInfo(ks, keyID, iv, crypter)
 {
-    var keyText = "";
-    if(keyID == 'Key2')
+    var keyText = null;
+    if(ks)
     {
-        keyText = "foo";
+        if(!(ks.constructor === Array))
+        {
+            keyText = ks.GetKey(keyID);            
+        } 
+        else
+        {
+            for (var i = 0, len = ks.length; i < len; i++) {
+                keyText = ks[i].GetKey(keyID);
+                if(!keyText)
+                {
+                    break;
+                }
+            }
+        }
     }
     // matches Rfc2898DerivedBytes to generate key values
     var derivedKey = crypto.pbkdf2Sync(keyText, iv, 1000, 256, 'sha1');
+    // first 32 bytes is key, next 32 is secret value
     var key = derivedKey.slice(0,crypter.keysize);
     var sec = derivedKey.slice(crypter.keysize,crypter.keysize + crypter.secretsize);
-    // var hexKey = derivedKey.toString('hex').toUpperCase();
-    // // first 32 bytes is key, next 32 is secret value
-    // var key = hexKey.substr(0,crypter.keysize * 2);
-    // var sec = hexKey.substr(crypter.keysize*2,crypter.secretsize * 2);
     var ret = { key : key, secret : sec }; 
     return ret;
 }
 
 function GetCrypterProps(crypterID)
 {
-    var ret = { crypter : null, keysize : 32, secretsize : 32 };
+    var ret = null;
+    switch(crypterID)
+    {
+        case constants.AES :
+            ret = { crypter : null, keysize : 32, secretsize : 32, ivsize : 16 };
+            break;
+    }
     return ret;
 }
 
 function GetCrypter(crypter, crypterID, keyinfo, iv)
 {
-    crypter.crypter = crypto.createDecipheriv('aes-256-cbc',keyinfo.key,iv);
+    switch(crypterID)
+    {
+        case constants.AES :
+            crypter.crypter = crypto.createDecipheriv('aes-256-cbc',keyinfo.key,iv);
+            break;
+    }
     return crypter;
 }
 
