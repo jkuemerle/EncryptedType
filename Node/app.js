@@ -12,6 +12,9 @@ console.log(dec);
 var enc = Encrypt("foo",integrity,ks,"Key2");
 console.log(enc);
 
+var dec2 = Decrypt(ks,enc,integrity);
+console.log(dec2);
+
 
 function Encrypt(data,integrity,keyServers,keyID, hmacID, crypterID)
 {
@@ -27,7 +30,19 @@ function Encrypt(data,integrity,keyServers,keyID, hmacID, crypterID)
     // generate random iv
     var iv = crypto.randomBytes(crypter.ivsize);
     var keyInfo = GetKeyInfo(keyServers,keyID,iv,crypter);
-    return null;
+    crypter = GetEncrypter(crypter,crypterID,keyInfo,iv);
+    var workData = data;
+    if(integrity != null )
+    {
+        var hv = hashValue(hmacID,data,integrity).toString('base64');
+        workData += "\0" + hv;
+    }
+    var rawencryptWork = crypter.crypter.update(workData,'utf8');
+    var rawencryptFinal = crypter.crypter.final();
+    var rawencrypt = Buffer.concat([rawencryptWork,rawencryptFinal]);
+    var rawhmac = hashValue(hmacID,rawencrypt,keyInfo.secret);
+    var ret = keyID + "~" + crypterID + "~" + hmacID + "~" + iv.toString('base64') + "~" + rawencrypt.toString('base64') + "~" + rawhmac.toString('base64');
+    return ret;
 }
 
 function Decrypt(keyServers,enc,integrity)
@@ -44,9 +59,19 @@ function Decrypt(keyServers,enc,integrity)
     var hmac = Buffer.from(hmacBase64, 'base64');
     var crypter = GetCrypterProps(crypterID);
     var keyInfo = GetKeyInfo(keyServers,keyID,iv,crypter);
-    crypter = GetCrypter(crypter,crypterID,keyInfo,iv);
+    crypter = GetDecrypter(crypter,crypterID,keyInfo,iv);
+    // verify that hmac is valid
+    if(!constantTimeCompare(hmac, hashValue(hmacID,data,keyInfo.secret)))
+    {
+        return null;
+    }
     var rawdecrypt = crypter.crypter.update(data, 'hex', 'utf8');
     rawdecrypt += crypter.crypter.final('utf8');
+    if(rawdecrypt.indexOf('\0') > 0 && (integrity == null || integrity.length === 0) )
+    {
+        // if there is integrity in the data and no integrity value we do not return data
+        return null;
+    }
     if(integrity == null || integrity.length === 0)
     {
         // there is no integrity check
@@ -128,12 +153,23 @@ function GetCrypterProps(crypterID)
     return ret;
 }
 
-function GetCrypter(crypter, crypterID, keyinfo, iv)
+function GetDecrypter(crypter, crypterID, keyinfo, iv)
 {
     switch(crypterID)
     {
         case constants.AES :
             crypter.crypter = crypto.createDecipheriv('aes-256-cbc',keyinfo.key,iv);
+            break;
+    }
+    return crypter;
+}
+
+function GetEncrypter(crypter, crypterID, keyinfo, iv)
+{
+    switch(crypterID)
+    {
+        case constants.AES :
+            crypter.crypter = crypto.createCipheriv('aes-256-cbc',keyinfo.key,iv);
             break;
     }
     return crypter;

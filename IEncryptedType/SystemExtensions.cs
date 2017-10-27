@@ -13,6 +13,7 @@ namespace EncryptedType
         private static object __sharedKeyCacheLock = new object();
         private static IDictionary<string, KeyInfo> _sharedKeyCache;
 
+        // Encryped Data Format: "<KeyID>~<CrypterID>~<HMACID>~<IV>~<Data>~<HMAC>"
         public static string Encrypt(this string Value, string KeyID, IEnumerable<IKeyServer> KeyServers, Func<string> Integrity)
         {
             return Encrypt(Value, KeyID, KeyServers, Integrity, Constants.HS256);
@@ -138,6 +139,11 @@ namespace EncryptedType
             SymmetricAlgorithm crypter = GetCrypter(crypterID);
             KeyInfo key = GetKeyInfo(KeyServers, keyID, iv, crypter);
             string retVal = Decrypt(HMACID,encrypted, mac, iv, key.KeyBytes, key.SecretBytes, crypter);
+            if(retVal.IndexOf('\0') > 0 && null != IntegrityFunction)
+            {
+                // if there is integrity in the data and no integrity value we do not return data
+                return null;
+            }
             if (null != IntegrityFunction)
             {
                 var values = retVal.Split('\0');
